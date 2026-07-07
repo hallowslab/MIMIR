@@ -1,0 +1,9 @@
+{% extends "mimir/base.html" %}
+{% block title %}GoAccess Report{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <a href="{% url 'mimir:job_detail' job.id %}" class="button is-light">&larr; Back to Job</a>
+</div>
+<iframe src="{% url 'mimir:report_raw' job.id %}" style="width:100%;height:90vh;border:none;"></iframe>
+{% endblock %}

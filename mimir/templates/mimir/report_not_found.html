@@ -1,0 +1,10 @@
+{% extends "mimir/base.html" %}
+{% block title %}Report Not Found{% endblock %}
+
+{% block content %}
+<div class="notification is-warning">
+  <h1 class="title">Report Not Found</h1>
+  <p>The report file for job {{ job.id }} was not found on disk.</p>
+  <a href="{% url 'mimir:job_detail' job.id %}" class="button is-light mt-3">Back to Job</a>
+</div>
+{% endblock %}

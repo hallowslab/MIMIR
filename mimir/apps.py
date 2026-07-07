@@ -1,4 +1,5 @@
 from django.apps import AppConfig
+from django.utils.safestring import mark_safe
 
 
 class MimirConfig(AppConfig):
@@ -7,20 +8,17 @@ class MimirConfig(AppConfig):
     verbose_name = "MIMIR"
     is_modular = True
     root_url = "/MIMIR"
-    icon = "☁️"
+    icon = mark_safe(
+        '<img src="/static/mimir/MIMIR_NOBG.png" alt="MIMIR" style="height:1.2em; vertical-align:middle;">'
+    )
 
     def get_dashboard_stats(self):
-
-        total_rsync_jobs = 100
-        total_rsync_job_failure_rate = 10.0
-        total_transfer_tools = 12
-        total_emails_created = 1024
-        total_email_passwords_reset = 100
-
+        from .models import MimirJob
+        total = MimirJob.objects.count()
+        success = MimirJob.objects.filter(status="SUCCESS").count()
+        failed = MimirJob.objects.filter(status="FAILED").count()
         return {
-            "(WIP)Total Rsync Jobs": total_rsync_jobs,
-            "(WIP)Total Rsync Job Failure Rate": f"{total_rsync_job_failure_rate:.1f}%",
-            "(WIP)Total Transfer Tools": total_transfer_tools,
-            "(WIP)Total Emails Created": total_emails_created,
-            "(WIP)Total Email Passwords Reset": total_email_passwords_reset,
+            "Total Jobs": total,
+            "Successful": success,
+            "Failed": failed,
         }

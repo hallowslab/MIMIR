@@ -1,0 +1,67 @@
+{% extends "mimir/base.html" %}
+{% block title %}New Analysis Job{% endblock %}
+
+{% block content %}
+<h1 class="title">New Log Analysis Job</h1>
+
+<form method="post" class="box">
+  {% csrf_token %}
+
+  <div class="field">
+    <label class="label">Target Server Hostname / IP</label>
+    <div class="control">
+      <input class="input" type="text" name="target_hostname" placeholder="e.g. web01.example.com" required>
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="label">Target SSH Port</label>
+    <div class="control">
+      <input class="input" type="number" name="target_port" value="22" required>
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="label">Target SSH Username</label>
+    <div class="control">
+      <input class="input" type="text" name="target_username" placeholder="e.g. root" required>
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="label">Log File Path</label>
+    <div class="control">
+      <input class="input" type="text" name="target_log_path" placeholder="e.g. /var/log/nginx/access.log" required>
+    </div>
+    <p class="help">Full path to the log file on the target server.</p>
+  </div>
+
+  <div class="field">
+    <label class="label">Proxy SSH Username</label>
+    <div class="control">
+      <input class="input" type="text" name="proxy_username" placeholder="e.g. jumper" required>
+    </div>
+    <p class="help">Your SSH username on the proxy/jump host.</p>
+  </div>
+
+  <div class="field">
+    <label class="label">Log Format</label>
+    <div class="control">
+      <div class="select">
+        <select name="log_format">
+          <option value="COMBINED">Combined (Nginx/Apache)</option>
+          <option value="COMMON">Common (Apache)</option>
+        </select>
+      </div>
+    </div>
+    <p class="help">GoAccess log format. Choose Combined unless your logs use Common format.</p>
+  </div>
+
+  <div class="field">
+    <div class="control">
+      <button type="submit" class="button is-primary">Create Job</button>
+      <a href="{% url 'mimir:index' %}" class="button is-light">Cancel</a>
+    </div>
+  </div>
+</form>
+{% endblock %}

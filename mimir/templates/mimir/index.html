@@ -1,0 +1,52 @@
+{% extends "mimir/base.html" %}
+{% load static %}
+{% block title %}MIMIR - Log Analysis{% endblock %}
+
+{% block content %}
+<div class="level">
+  <div class="level-left">
+    <img src="{% static 'MIMIR/MIMIR_NOBG.png' %}" alt="MIMIR" style="height:2.5rem; margin-right:0.75rem; vertical-align:middle;">
+    <h1 class="title">MIMIR Log Analysis</h1>
+  </div>
+  <div class="level-right">
+    <a href="{% url 'mimir:job_create' %}" class="button is-primary">New Job</a>
+  </div>
+</div>
+
+{% if jobs %}
+<table class="table is-fullwidth is-hoverable">
+  <thead>
+    <tr>
+      <th>Job ID</th>
+      <th>Target</th>
+      <th>Status</th>
+      <th>Created</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for job in jobs %}
+    <tr>
+      <td><code>{{ job.id|stringformat:"s"|truncatechars:12 }}</code></td>
+      <td>{{ job.target_username }}@{{ job.target_hostname }}</td>
+      <td>
+        {% if job.status == 'SUCCESS' %}
+        <span class="tag is-success">Complete</span>
+        {% elif job.status == 'PROCESSING' %}
+        <span class="tag is-warning">Processing</span>
+        {% elif job.status == 'FAILED' %}
+        <span class="tag is-danger">Failed</span>
+        {% else %}
+        <span class="tag is-info">Pending</span>
+        {% endif %}
+      </td>
+      <td>{{ job.created_at|date:"Y-m-d H:i" }}</td>
+      <td><a href="{% url 'mimir:job_detail' job.id %}">View</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="notification is-info is-light">No analysis jobs yet.</div>
+{% endif %}
+{% endblock %}

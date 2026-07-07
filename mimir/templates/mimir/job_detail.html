@@ -1,0 +1,146 @@
+{% extends "mimir/base.html" %}
+{% block title %}Job {{ job.id|stringformat:"s"|truncatechars:12 }}{% endblock %}
+
+{% block content %}
+<h1 class="title">Log Analysis Job</h1>
+
+<div class="box">
+  <table class="table is-fullwidth">
+    <tr><th>Target</th><td>{{ job.target_username }}@{{ job.target_hostname }}:{{ job.target_port }}</td></tr>
+    <tr><th>Log Path</th><td><code>{{ job.target_log_path }}</code></td></tr>
+    <tr><th>Proxy User</th><td>{{ job.proxy_username }}@{{ proxy_host }}</td></tr>
+    <tr><th>Status</th><td><span id="job-status" class="tag {% if job.status == 'SUCCESS' %}is-success{% elif job.status == 'PROCESSING' %}is-warning{% elif job.status == 'FAILED' %}is-danger{% else %}is-info{% endif %}">{{ job.get_status_display }}</span></td></tr>
+    <tr><th>Created</th><td>{{ job.created_at|date:"Y-m-d H:i:s" }}</td></tr>
+    {% if job.completed_at %}
+    <tr><th>Completed</th><td>{{ job.completed_at|date:"Y-m-d H:i:s" }}</td></tr>
+    {% endif %}
+    {% if job.error_message %}
+    <tr><th>Error</th><td class="has-text-danger">{{ job.error_message }}</td></tr>
+    {% endif %}
+  </table>
+</div>
+
+{% if job.status == "PENDING" %}
+<div class="box">
+  <h2 class="subtitle">Step 1: Download log file to your computer</h2>
+  <p class="mb-2">Run one of these commands in your local terminal:</p>
+
+  <div class="mb-3">
+    <h3 class="is-size-6 has-text-weight-semibold">Linux / macOS</h3>
+    <div class="control">
+      <textarea class="textarea is-family-code" rows="2" readonly onclick="this.select()">{{ cmd_download_linux }}</textarea>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <h3 class="is-size-6 has-text-weight-semibold">Windows PowerShell</h3>
+    <div class="control">
+      <textarea class="textarea is-family-code" rows="2" readonly onclick="this.select()">{{ cmd_download_windows }}</textarea>
+    </div>
+  </div>
+
+  <h2 class="subtitle mt-4">Step 2: Upload the file</h2>
+  <p class="mb-2">Option A — Upload via browser:</p>
+  <form id="upload-form" method="POST" enctype="multipart/form-data">
+    <div class="field has-addons">
+      <div class="control">
+        <input class="input" type="file" id="file-input" name="file">
+      </div>
+      <div class="control">
+        <button type="submit" class="button is-primary">Upload</button>
+      </div>
+    </div>
+    <progress id="upload-progress" class="progress is-primary" value="0" max="100" hidden></progress>
+    <p id="upload-status" class="help"></p>
+  </form>
+
+  <p class="mt-3">Option B — Upload via curl (Linux):</p>
+  <div class="control">
+    <textarea class="textarea is-family-code" rows="2" readonly onclick="this.select()">{{ cmd_upload_curl }}</textarea>
+  </div>
+
+  <p class="mt-3">Option C — Upload via curl (PowerShell):</p>
+  <div class="control">
+    <textarea class="textarea is-family-code" rows="2" readonly onclick="this.select()">{{ cmd_upload_powershell }}</textarea>
+  </div>
+</div>
+{% endif %}
+
+{% if job.status == "SUCCESS" and job.report_html_path %}
+<div class="box">
+  <h2 class="subtitle">GoAccess Report</h2>
+  <div class="buttons">
+    <a href="{% url 'mimir:report_view' job.id %}" class="button is-primary">Open Report(embedded)</a>
+    <a href="{% url 'mimir:report_raw' job.id %}" class="button is-primary" target="_blank">Open Report(New tab)</a>
+    <a href="{% url 'mimir:report_download' job.id %}" class="button is-light">Download</a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_head %}
+{% if job.status == "PENDING" or job.status == "PROCESSING" %}
+<script>
+const JOB_ID = "{{ job.id }}";
+const TOKEN = "{{ job.temp_auth_token }}";
+
+async function pollStatus() {
+  try {
+    const r = await fetch("/MIMIR/jobs/{{ job.id }}/status/");
+    const data = await r.json();
+    const badge = document.getElementById("job-status");
+    badge.textContent = data.status;
+    badge.className = "tag";
+    if (data.status === "SUCCESS") badge.classList.add("is-success");
+    else if (data.status === "PROCESSING") badge.classList.add("is-warning");
+    else if (data.status === "FAILED") badge.classList.add("is-danger");
+    else badge.classList.add("is-info");
+
+    if (data.report_url) {
+      window.location.reload();
+    }
+  } catch (_) {}
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("upload-form");
+  if (!form) return;
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const fileInput = document.getElementById("file-input");
+    const file = fileInput?.files?.[0];
+    if (!file) return;
+
+    const progress = document.getElementById("upload-progress");
+    const status = document.getElementById("upload-status");
+    progress.hidden = false;
+    status.textContent = "Uploading...";
+
+    const fd = new FormData();
+    fd.append("file", file);
+
+    try {
+      const r = await fetch("/MIMIR/jobs/" + JOB_ID + "/upload/", {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + TOKEN },
+        body: fd,
+      });
+      if (r.ok) {
+        status.textContent = "Upload complete, processing...";
+        progress.value = 100;
+        pollStatus();
+      } else {
+        const err = await r.json();
+        status.textContent = "Upload failed: " + (err.error || r.statusText);
+      }
+    } catch (err) {
+      status.textContent = "Upload error: " + err.message;
+    }
+  });
+});
+
+setInterval(pollStatus, 3000);
+</script>
+{% endif %}
+{% endblock %}
