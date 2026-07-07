@@ -41,7 +41,15 @@
         {% endif %}
       </td>
       <td>{{ job.created_at|date:"Y-m-d H:i" }}</td>
-      <td><a href="{% url 'mimir:job_detail' job.id %}">View</a></td>
+      <td>
+        <a href="{% url 'mimir:job_detail' job.id %}" class="pr-2">View</a>
+        {% if user.is_staff %}
+        <form method="POST" action="{% url 'mimir:job_delete' job.id %}" style="display:inline" onsubmit="return confirm('Delete this job? This cannot be undone.')">
+          {% csrf_token %}
+          <button type="submit" class="button is-small is-danger is-outlined">Delete</button>
+        </form>
+        {% endif %}
+      </td>
     </tr>
     {% endfor %}
   </tbody>

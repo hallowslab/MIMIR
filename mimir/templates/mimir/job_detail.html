@@ -18,6 +18,12 @@
     <tr><th>Error</th><td class="has-text-danger">{{ job.error_message }}</td></tr>
     {% endif %}
   </table>
+  {% if user.is_staff %}
+  <form method="POST" action="{% url 'mimir:job_delete' job.id %}" onsubmit="return confirm('Delete this job and all associated files? This cannot be undone.')">
+    {% csrf_token %}
+    <button type="submit" class="button is-danger is-outlined is-small">Delete Job</button>
+  </form>
+  {% endif %}
 </div>
 
 {% if job.status == "PENDING" %}

@@ -1,5 +1,8 @@
 import os
 
+import shutil
+
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
@@ -56,6 +59,23 @@ def job_detail(request, job_id):
         "proxy_host": proxy_host,
     }
     return render(request, "mimir/job_detail.html", ctx)
+
+
+@staff_member_required
+@require_POST
+def job_delete(request, job_id):
+    job = get_object_or_404(MimirJob, id=job_id)
+
+    if job.local_log_path and os.path.isfile(job.local_log_path):
+        os.remove(job.local_log_path)
+    if job.report_html_path:
+        report_dir = os.path.dirname(job.report_html_path)
+        if os.path.isdir(report_dir):
+            shutil.rmtree(report_dir, ignore_errors=True)
+
+    job.alerts.all().delete()
+    job.delete()
+    return redirect("mimir:index")
 
 
 @login_required
