@@ -5,7 +5,7 @@ from django.utils import timezone
 from celery import shared_task
 
 from .models import MimirJob, SecurityAlert
-from .utils import safe_log_path, safe_report_path
+from .utils import safe_log_path, safe_report_path, parse_security_events
 
 
 @shared_task(bind=True)
@@ -35,19 +35,26 @@ def analyze_log_file(self, job_id):
             )
 
         job.report_html_path = report_path
+
+        # ── Security event analysis ──────────────────────────
+        with open(log_path, "r") as f:
+            log_content = f.read()
+
+        events = parse_security_events(log_content)
+        for ev in events:
+            SecurityAlert.objects.create(
+                job=job,
+                source_ip=ev["source_ip"],
+                scenario=ev["scenario"],
+                description=ev["description"],
+                severity=ev["severity"],
+                score=ev["score"],
+                detected_at=timezone.now(),
+            )
+
         job.completed_at = timezone.now()
         job.status = "SUCCESS"
         job.save()
-
-        # crowdsec_alerts = parse_crowdsec_alerts(log_path)
-        # for alert_data in crowdsec_alerts:
-        #     SecurityAlert.objects.create(
-        #         job=job,
-        #         source_ip=alert_data["ip"],
-        #         scenario=alert_data["scenario"],
-        #         description=alert_data["description"],
-        #         detected_at=timezone.now(),
-        #     )
 
     except Exception as e:
         job.status = "FAILED"

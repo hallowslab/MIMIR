@@ -72,11 +72,19 @@ class MimirJob(models.Model):
 
 
 class SecurityAlert(models.Model):
+    class Severity(models.TextChoices):
+        LOW = "LOW", "Low"
+        MEDIUM = "MEDIUM", "Medium"
+        HIGH = "HIGH", "High"
+        CRITICAL = "CRITICAL", "Critical"
+
     job = models.ForeignKey(MimirJob, on_delete=models.CASCADE, related_name='alerts')
     source_ip = models.GenericIPAddressField()
     scenario = models.CharField(max_length=255)
     description = models.TextField()
+    severity = models.CharField(max_length=20, choices=Severity.choices, default=Severity.LOW)
+    score = models.FloatField(default=0)
     detected_at = models.DateTimeField()
 
     def __str__(self):
-        return f"Alert {self.scenario} from {self.source_ip}"
+        return f"[{self.severity}] {self.scenario} from {self.source_ip}"

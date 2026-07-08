@@ -52,6 +52,7 @@ def job_detail(request, job_id):
     proxy_host = MIMIR_PROXY_HOST
     ctx = {
         "job": job,
+        "alerts": job.alerts.order_by("-score"),
         "cmd_download_linux": build_scp_download_linux(job, job.proxy_username, proxy_host),
         "cmd_download_windows": build_scp_download_windows(job, job.proxy_username, proxy_host),
         "cmd_upload_curl": build_upload_curl(job),
@@ -145,6 +146,7 @@ def report_view(request, job_id):
 
 
 @login_required
+@xframe_options_exempt
 def report_raw_view(request, job_id):
     job = get_object_or_404(MimirJob, id=job_id, requested_by=request.user)
     if job.status != MimirJob.Status.SUCCESS or not job.report_html_path:

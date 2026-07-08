@@ -82,6 +82,40 @@
   </div>
 </div>
 {% endif %}
+
+{% with alerts=alerts %}
+{% if alerts %}
+<div class="box">
+  <h2 class="subtitle">Security Alerts</h2>
+  <table class="table is-fullwidth is-striped">
+    <thead>
+      <tr>
+        <th>Severity</th>
+        <th>Source IP</th>
+        <th>Scenario</th>
+        <th>Score</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in alerts %}
+      <tr>
+        <td>
+          <span class="tag {% if a.severity == 'CRITICAL' %}is-danger{% elif a.severity == 'HIGH' %}is-warning{% elif a.severity == 'MEDIUM' %}is-info{% else %}is-light{% endif %}">
+            {{ a.get_severity_display }}
+          </span>
+        </td>
+        <td><code>{{ a.source_ip }}</code></td>
+        <td><code>{{ a.scenario }}</code></td>
+        <td>{{ a.score }}</td>
+        <td style="font-size:0.85rem">{{ a.description }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endwith %}
 {% endblock %}
 
 {% block extra_head %}
