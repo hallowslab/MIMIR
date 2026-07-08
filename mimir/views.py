@@ -4,7 +4,7 @@ import shutil
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest, HttpResponseForbidden
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.clickjacking import xframe_options_exempt
@@ -102,10 +102,10 @@ def job_upload(request, job_id):
 
     auth = request.META.get("HTTP_AUTHORIZATION", "").removeprefix("Bearer ")
     if not validate_job_token(job, auth):
-        return HttpResponseForbidden("Invalid or expired token")
+        return JsonResponse({"error": "Invalid or expired token"}, status=403)
 
     if "file" not in request.FILES:
-        return HttpResponseBadRequest("No file uploaded")
+        return JsonResponse({"error": "No file uploaded"}, status=400)
 
     try:
         uploaded = request.FILES["file"]
