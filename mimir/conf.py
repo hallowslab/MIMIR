@@ -20,5 +20,5 @@ MIMIR_UPLOAD_MAX_SIZE = int(
     os.environ.get("MIMIR_UPLOAD_MAX_SIZE", str(500 * 1024 * 1024))
 )
 MIMIR_GEOIP_DB_PATH = os.environ.get(
-    "MIMIR_GEOIP_DB_PATH", "/usr/share/GeoIP/dbip-city-lite.mmdb"
+    "MIMIR_GEOIP_DB_PATH", "/app/data/mimir/dbip-city-lite.mmdb"
 )
