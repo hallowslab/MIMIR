@@ -1,0 +1,15 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools-items %}
+  <li>
+    <a href="generate-log/" class="addlink">
+      Generate Sample Log
+    </a>
+  </li>
+  <li>
+    <a href="update-geoip/" class="changelink">
+      Update GeoIP Database
+    </a>
+  </li>
+  {{ block.super }}
+{% endblock %}

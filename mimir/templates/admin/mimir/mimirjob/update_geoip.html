@@ -1,0 +1,65 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} | {{ site_title }}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <div class="module">
+    <h2>{{ title }}</h2>
+
+    {% if db_info.exists %}
+    <fieldset class="module aligned">
+      <h3>Current Database</h3>
+      <div class="form-row">
+        <div class="field-box">
+          <label>Path:</label>
+          <p>{{ db_info.path }}</p>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field-box">
+          <label>Size:</label>
+          <p>{{ db_info.size|filesizeformat }}</p>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field-box">
+          <label>Last Modified:</label>
+          <p>{{ db_info.modified|date:"Y-m-d H:i:s" }}</p>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field-box">
+          <label>MD5 Checksum:</label>
+          <p><code>{{ db_info.md5 }}</code></p>
+        </div>
+      </div>
+    </fieldset>
+    {% else %}
+    <div class="module aligned">
+      <h3>No Database Found</h3>
+      <div class="form-row">
+        <div class="field-box">
+          <label>Expected Path:</label>
+          <p><code>{{ db_info.path }}</code></p>
+          <p class="help">Database will be downloaded from DB-IP on first run.</p>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="submit-row">
+        {% if db_info.exists %}
+        <input type="submit" value="Update Database" class="default">
+        {% else %}
+        <input type="submit" value="Download Database" class="default">
+        {% endif %}
+        <a href="../" class="button cancel-link">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

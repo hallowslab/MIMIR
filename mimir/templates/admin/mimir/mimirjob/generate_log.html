@@ -1,0 +1,67 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} | {{ site_title }}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <div class="module">
+    <h2>{{ title }}</h2>
+    <form method="post">
+      {% csrf_token %}
+
+      <fieldset class="module aligned">
+        <h3>Log Generation Options</h3>
+
+        <div class="form-row">
+          <div class="field-box">
+            <label for="id_lines">Number of Lines:</label>
+            <input type="number" id="id_lines" name="lines" value="1000" min="100" max="100000" step="100">
+            <p class="help">How many log lines to generate (100-100,000).</p>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="field-box">
+            <label for="id_log_format">Log Format:</label>
+            <select id="id_log_format" name="log_format">
+              <option value="COMBINED">Combined (Nginx/Apache)</option>
+              <option value="COMMON">Common (Apache)</option>
+            </select>
+            <p class="help">Format of the generated log lines.</p>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="module aligned">
+        <h3>Action</h3>
+
+        <div class="form-row">
+          <div class="field-box">
+            <label>
+              <input type="radio" name="action" value="download" checked>
+              Download Log File
+            </label>
+            <p class="help">Download the generated log as a .log file.</p>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="field-box">
+            <label>
+              <input type="radio" name="action" value="analyze">
+              Analyze with GoAccess
+            </label>
+            <p class="help">Create a MIMIR job and start analysis immediately.</p>
+          </div>
+        </div>
+      </fieldset>
+
+      <div class="submit-row">
+        <input type="submit" value="Generate" class="default">
+        <a href="../../" class="button cancel-link">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
